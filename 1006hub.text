@@ -1,0 +1,119 @@
+-- [[ 1006 HUB - PHIÊN BẢN CHÍNH THỨC 2026 ]] --
+-- GitHub: https://github.com/YourName/1006Hub (Thay bằng link của bạn)
+
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local TweenService = game:GetService("TweenService")
+local SoundService = game:GetService("SoundService")
+
+-- [[ HỆ THỐNG ÂM THANH & VOICE ]] --
+local function Play1006Effect(actionName)
+    -- Tiếng cười đặc trưng
+    local Laugh = Instance.new("Sound", SoundService)
+    Laugh.SoundId = "rbxassetid://6340211440"
+    Laugh.Volume = 1.5
+    Laugh:Play()
+    -- Giọng nói "Đã kích hoạt" (Monster Tone)
+    local Voice = Instance.new("Sound", SoundService)
+    Voice.SoundId = "rbxassetid://9061036224"
+    Voice.Pitch = 0.6
+    Voice.Volume = 2
+    Voice:Play()
+    
+    Fluent:Notify({Title = "1006 HUB", Content = "Đã kích hoạt: " .. actionName, Duration = 3})
+    game:GetService("Debris"):AddItem(Laugh, 5)
+    game:GetService("Debris"):AddItem(Voice, 5)
+end
+
+-- [[ HIỆU ỨNG RƯỚM MÁU ]] --
+local BloodOverlay = Instance.new("ScreenGui", game.Players.LocalPlayer.PlayerGui)
+local BloodFrame = Instance.new("ImageLabel", BloodOverlay)
+BloodOverlay.IgnoreGuiInset = true
+BloodFrame.Size = UDim2.new(1, 0, 1, 0)
+BloodFrame.BackgroundTransparency = 1
+BloodFrame.Image = "rbxassetid://12109692881"
+BloodFrame.ImageColor3 = Color3.fromRGB(130, 0, 0)
+BloodFrame.ImageTransparency = 1
+
+local function PulseBlood(v)
+    TweenService:Create(BloodFrame, TweenInfo.new(0.5), {ImageTransparency = v and 0.4 or 1}):Play()
+end
+
+-- [[ KHỞI TẠO GIAO DIỆN ]] --
+local Window = Fluent:CreateWindow({
+    Title = "1006 HUB",
+    SubTitle = "The Prototype | Phiên Bản Tiếng Việt",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = false,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+Fluent.Options.Theme = {
+    MainColor = Color3.fromRGB(15, 15, 15),
+    AccentColor = Color3.fromRGB(255, 203, 0),
+    BackgroundColor = Color3.fromRGB(10, 10, 10),
+    OutlineColor = Color3.fromRGB(45, 45, 45),
+    FontColor = Color3.fromRGB(255, 255, 255)
+}
+
+-- Phát âm thanh chào mừng khi mở script
+Play1006Effect("Menu Giao Diện")
+
+local Tabs = {
+    Main = Window:AddTab({ Title = "Tự Động Farm", Icon = "home" }),
+    Poppy = Window:AddTab({ Title = "Poppy Ch.5", Icon = "rbxassetid://10723343321" }),
+    Settings = Window:AddTab({ Title = "Cài Đặt", Icon = "settings" })
+}
+
+-- THANH TÌM KIẾM
+Tabs.Main:AddInput("Search", {Title = "Tìm kiếm", Placeholder = "Nhập chức năng...", Callback = function() end})
+
+-- LOGIC GOM QUÁI BÀN TAY
+local function BringWithHand()
+    spawn(function()
+        while _G.BringMobs do
+            task.wait(1.5)
+            pcall(function()
+                local Target = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,-5)
+                -- Tạo bàn tay 1006 gom quái
+                local Hand = Instance.new("Part", workspace)
+                Hand.Size = Vector3.new(15, 2, 15); Hand.Anchored = true; Hand.CanCollide = false
+                Hand.Color = Color3.fromRGB(20,20,20); Hand.Material = "Neon"; Hand.CFrame = Target * CFrame.new(0,15,0)
+                TweenService:Create(Hand, TweenInfo.new(0.5), {CFrame = Target, Transparency = 1}):Play()
+                
+                for _, v in pairs(workspace.Enemies:GetChildren()) do
+                    if v:FindFirstChild("HumanoidRootPart") and (v.HumanoidRootPart.Position - Target.p).Magnitude <= 1000 then
+                        v.HumanoidRootPart.CFrame = Target
+                        v.HumanoidRootPart.CanCollide = false
+                    end
+                end
+                game:GetService("Debris"):AddItem(Hand, 0.6)
+            end)
+        end
+    end)
+end
+
+-- TÍCH HỢP NÚT BẤM
+Tabs.Main:AddSection("Hệ Thống Farm")
+Tabs.Main:AddToggle("FarmLvl", {Title = "Auto Farm Level + Quest", Default = false, Callback = function(v) _G.AutoFarm = v if v then Play1006Effect("Auto Farm") end end})
+Tabs.Main:AddToggle("Grip", {Title = "Bàn Tay 1006 Gom Quái (1000)", Default = false, Callback = function(v) _G.BringMobs = v if v then BringWithHand() Play1006Effect("Gom Quái") end end})
+
+Tabs.Poppy:AddSection("Hiệu Ứng 1006")
+Tabs.Poppy:AddButton({
+    Title = "1006 Đâm Xuyên & Bay",
+    Callback = function()
+        Play1006Effect("Dịch Chuyển 1006")
+        PulseBlood(true)
+        -- Chèn tọa độ bay của bạn ở đây
+        task.wait(3)
+        PulseBlood(false)
+    end
+})
+
+Tabs.Settings:AddSection("Bảo Mật")
+Tabs.Settings:AddToggle("AntiAdmin", {Title = "Tự Đổi Server Khi Có Admin", Default = true})
+Tabs.Settings:AddButton({Title = "Tắt Script", Callback = function() Window:Destroy() end})
+
+Window:SelectTab(1)
